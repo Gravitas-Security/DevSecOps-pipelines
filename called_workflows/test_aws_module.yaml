@@ -1,0 +1,73 @@
+name: Deploy AWS Infrastructure
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+    secrets:
+      aws_role:
+        required: true
+
+jobs:
+  terraform_deploy:
+    name: Deploy AWS infrastructure
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+
+    - name: Checkout Repo
+      uses: actions/checkout@v3.3.0
+
+    - name: configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-region: us-west-2
+        role-to-assume: ${{ secrets.aws_role }}
+        role-duration-seconds: 3600
+
+    - name: Run Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.3.7
+        terraform_wrapper: true
+      
+    - name: Terraform init
+      run: terraform init -input=false
+      continue-on-error: false
+
+    - name: Terraform validation
+      id: validate
+      run: terraform validate
+
+    - name: Terraform plan
+      id: plan
+      if: github.event_name == 'pull_request'
+      run: terraform plan -no-color -input=false -out tfplan.plan
+      continue-on-error: true
+  
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4.5.0
+      with:
+        python-version: 3.8
+        
+    - name: Test with Checkov
+      id: checkov
+      uses: bridgecrewio/checkov-action@v12
+      with:
+        directory: ${{ inputs.working-directory }}
+        framework: terraform 
+ 
+    - name: Terraform apply
+      id : apply
+      run: terraform apply -auto-approve -input=false
+      
+    - name: Terraform destroy
+      id : destroy
+      run: terraform destroy -auto-approve -input=false

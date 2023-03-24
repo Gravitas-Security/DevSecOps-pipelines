@@ -1,0 +1,26 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - your_TF_Dir/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - your_TF_Dir/**
+permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+jobs:
+  tf_deploy:     
+    uses: your_pipeline_repo/.github/workflows/deploy_terraform.yml@main
+    with:
+      working-directory: './your_TF_Dir'
+    secrets:
+      aws_role: ${{ secrets.AWS_ROLE }}
+      ssh_key: ${{ secrets.SSH_KEY }}
