@@ -50,6 +50,10 @@ jobs:
       id: validate
       run: terraform validate
 
+    - name: Debug AWS Identity
+      run: |
+        aws sts get-caller-identity
+
     - name: Terraform plan
       id: plan
       if: github.event_name == 'pull_request'
