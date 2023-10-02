@@ -41,8 +41,6 @@ jobs:
         terraform_version: 1.3.7
         terraform_wrapper: true
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-      env:
-        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
         
     # - uses: webfactory/ssh-agent@v0.7.0
     #   with:
