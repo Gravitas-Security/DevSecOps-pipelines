@@ -50,7 +50,7 @@ jobs:
       run: terraform init -input=false
       continue-on-error: false
       env:
-        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
     - name: Terraform validation
       id: validate
@@ -62,7 +62,7 @@ jobs:
       run: terraform plan -no-color -input=false -out tfplan.plan
       continue-on-error: false
       env:
-        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
       
     - uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
@@ -130,6 +130,7 @@ jobs:
     - name: Test with Checkov
       id: checkov
       uses: bridgecrewio/checkov-action@v12.1347.0
+      if: github.event_name == 'pull_request'
       with:
         directory: ${{ inputs.working-directory }}
         framework: terraform 
@@ -139,4 +140,4 @@ jobs:
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
       env:
-        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
