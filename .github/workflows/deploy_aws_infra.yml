@@ -9,7 +9,7 @@ on:
     secrets:
       aws_role:
         required: true
-      ssh_key:
+      tf_api_token:
         required: true
 
 jobs:
