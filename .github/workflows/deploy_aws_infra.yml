@@ -60,7 +60,6 @@ jobs:
       continue-on-error: false
       env:
         TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-        AWS_ROLE: ${{ secrets.AWS_ROLE }}
       
     - uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
@@ -139,4 +138,3 @@ jobs:
       run: terraform apply -auto-approve -input=false
       env:
         TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-        AWS_ROLE: ${{ secrets.AWS_ROLE }}
