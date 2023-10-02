@@ -16,9 +16,6 @@ jobs:
   terraform_deploy:
     name: Deploy AWS infrastructure
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
     defaults:
       run:
         shell: bash
