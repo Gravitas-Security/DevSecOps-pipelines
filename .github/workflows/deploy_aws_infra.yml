@@ -1,0 +1,104 @@
+name: Deploy AWS Infrastructure
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+    secrets:
+      aws_role:
+        required: true
+      ssh_key:
+        required: true
+
+jobs:
+  terraform_deploy:
+    name: Deploy AWS infrastructure
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+
+    - name: Checkout Repo
+      uses: actions/checkout@v3.3.0
+
+    - name: configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-region: us-west-2
+        role-to-assume: ${{ secrets.aws_role }}
+        role-duration-seconds: 3600
+
+    - name: Run Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.3.7
+        terraform_wrapper: true
+        
+    - uses: webfactory/ssh-agent@v0.7.0
+      with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+      
+    - name: Terraform init
+      run: terraform init -input=false
+      continue-on-error: false
+
+    - name: Terraform validation
+      id: validate
+      run: terraform validate
+
+    - name: Terraform plan
+      id: plan
+      if: github.event_name == 'pull_request'
+      run: terraform plan -no-color -input=false -out tfplan.plan
+      continue-on-error: false
+      
+    - name: Update Pull Request
+      uses: actions/github-script@0.9.0
+      if: github.event_name == 'pull_request'
+      env:
+        PLAN: "${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const output = `
+          Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`
+          #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+          <details><summary>Show Plan</summary>
+          \n
+          \`\`\`terraform
+          ${process.env.PLAN}
+          \`\`\`
+          \n
+          </details>
+          `;
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+    
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4.5.0
+      with:
+        python-version: 3.8
+        
+    - name: Test with Checkov
+      id: checkov
+      uses: bridgecrewio/checkov-action@v12
+      with:
+        directory: ${{ inputs.working-directory }}
+        framework: terraform 
+      
+    - name: Terraform apply
+      id : apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve -input=false
