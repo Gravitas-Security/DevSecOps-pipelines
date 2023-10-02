@@ -50,7 +50,7 @@ jobs:
       shell: bash 
       run: printenv
 
-    - name: printenv
+    - name: Terraform init
       run: terraform init -input=false
       continue-on-error: false
       # env:
