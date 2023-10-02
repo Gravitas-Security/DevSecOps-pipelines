@@ -46,6 +46,8 @@ jobs:
       
     - name: Terraform init
       run: terraform init -input=false
+      env:
+        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
       continue-on-error: false
 
     - name: Terraform validation
@@ -56,6 +58,8 @@ jobs:
       id: plan
       if: github.event_name == 'pull_request'
       run: terraform plan -no-color -input=false -out tfplan.plan
+      env:
+        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
       continue-on-error: false
       
     - name: Update Pull Request
