@@ -41,14 +41,6 @@ jobs:
         terraform_version: 1.5.7
         terraform_wrapper: true
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-        
-    # - uses: webfactory/ssh-agent@v0.7.0
-    #   with:
-    #       ssh-private-key: ${{ secrets.SSH_KEY }}
-      
-    - name: printenv
-      shell: bash 
-      run: printenv
 
     - name: Terraform init
       run: terraform init -input=false
@@ -65,8 +57,6 @@ jobs:
       if: github.event_name == 'pull_request'
       run: terraform plan -no-color -input=false
       continue-on-error: false
-      # env:
-      #   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
       
     - uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
@@ -143,5 +133,3 @@ jobs:
       id : apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
-      # env:
-      #   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
