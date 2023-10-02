@@ -59,7 +59,7 @@ jobs:
       continue-on-error: false
       
     - name: Update Pull Request
-      uses: actions/github-script@6.4.1
+      uses: actions/github-script@v6.4.1
       if: github.event_name == 'pull_request'
       env:
         PLAN: "${{ steps.plan.outputs.stdout }}"
