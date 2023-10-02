@@ -20,6 +20,9 @@ jobs:
       run:
         shell: bash
         working-directory: ${{ inputs.working-directory }}
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read  # This is required for actions/checkout
     steps:
 
     - name: Checkout Repo
