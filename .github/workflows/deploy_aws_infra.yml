@@ -60,10 +60,7 @@ jobs:
       run: terraform plan -no-color -input=false
       continue-on-error: false
       env:
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-
+        AWS_ROLE_ARN: ${{ env.AWS_ROLE_ARN }}
       
     - uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
