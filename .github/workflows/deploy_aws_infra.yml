@@ -36,7 +36,7 @@ jobs:
         role-duration-seconds: 3600
 
     - name: Run Terraform
-      uses: hashicorp/setup-terraform@v2.0.3
+      uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: 1.3.7
         terraform_wrapper: true
@@ -49,8 +49,8 @@ jobs:
     - name: Terraform init
       run: terraform init -input=false
       continue-on-error: false
-      env:
-        TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      # env:
+      #   TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
     - name: Terraform validation
       id: validate
@@ -61,8 +61,8 @@ jobs:
       if: github.event_name == 'pull_request'
       run: terraform plan -no-color -input=false -out tfplan.plan
       continue-on-error: false
-      env:
-        TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      # env:
+      #   TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
       
     - uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
@@ -139,5 +139,5 @@ jobs:
       id : apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
-      env:
-        TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      # env:
+      #   TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
