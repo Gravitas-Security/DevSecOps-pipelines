@@ -46,7 +46,11 @@ jobs:
     #   with:
     #       ssh-private-key: ${{ secrets.SSH_KEY }}
       
-    - name: Terraform init
+    - name: printenv
+      shell: bash 
+      run: printenv
+
+    - name: printenv
       run: terraform init -input=false
       continue-on-error: false
       # env:
