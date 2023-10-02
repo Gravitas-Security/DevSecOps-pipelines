@@ -29,7 +29,7 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-region: us-west-2
-        role-to-assume: ${{ secrets.aws_role }}
+        role-to-assume: ${{ secrets.AWS_ROLE }}
         role-duration-seconds: 3600
 
     - name: Run Terraform
