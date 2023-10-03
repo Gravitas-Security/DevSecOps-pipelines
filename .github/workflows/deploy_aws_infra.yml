@@ -51,14 +51,6 @@ jobs:
       id: validate
       run: terraform validate
 
-    # - name: Debug AWS Identity
-    #   run: |
-    #     aws sts get-caller-identity
-
-    # - name: troubleshooting
-    #   run: |
-    #     cat ~\.aws\credentials.conf
-
     - name: Terraform plan
       id: plan
       if: github.event_name == 'pull_request'
@@ -135,6 +127,54 @@ jobs:
       with:
         directory: ${{ inputs.working-directory }}
         framework: terraform 
+
+    - uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      env:
+        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+      with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Checkov Scan Results')
+            })
+
+            // 2. Prepare format of the comment
+            const output = `#### Checkov Scan Results 🖌\`${{ steps.checkov.outcome }}\`
+            #### Checkov Scan Results 📖\`${{ steps.checkov.outcome }}\`
+
+            <details><summary>Show Scan</summary>
+
+            \`\`\`\n
+            ${process.env.results.sarif}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            // 3. If we have a comment, update it, otherwise create a new one
+            if (botComment) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
       
     - name: Terraform apply
       id : apply
