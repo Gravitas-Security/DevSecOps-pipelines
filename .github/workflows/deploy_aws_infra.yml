@@ -53,14 +53,13 @@ jobs:
     - name: Debug AWS Identity
       run: |
         aws sts get-caller-identity
+        la -la
 
     - name: Terraform plan
       id: plan
       if: github.event_name == 'pull_request'
       run: terraform plan -no-color -input=false
       continue-on-error: false
-      env:
-        AWS_ROLE_ARN: ${{ env.AWS_ROLE_ARN }}
       
     - uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
