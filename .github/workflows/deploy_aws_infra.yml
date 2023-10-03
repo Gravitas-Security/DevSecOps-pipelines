@@ -128,6 +128,8 @@ jobs:
       with:
         directory: ${{ inputs.working-directory }}
         framework: terraform 
+        output_format: cli
+        output_file_path: console
 
     - name: Post Checkov Scan to PR
       uses: actions/github-script@v6
