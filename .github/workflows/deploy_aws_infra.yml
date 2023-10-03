@@ -56,7 +56,7 @@ jobs:
 
     - name: troubleshooting
       run: |
-        ls -la
+        cat ~\.aws\credentials.conf
 
     - name: Terraform plan
       id: plan
