@@ -63,9 +63,6 @@ jobs:
       if: github.event_name == 'pull_request'
       run: terraform plan -no-color -input=false 
       continue-on-error: false
-      env:
-        AWS_EC2_METADATA_DISABLED: true
-        AWS_SDK_LOAD_CONFIG: true
       
     - uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
