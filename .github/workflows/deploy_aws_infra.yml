@@ -24,8 +24,7 @@ jobs:
       run:
         shell: bash
         working-directory: ${{ inputs.working-directory }}
-    outputs:
-      checkov: ${{ steps.checkov.outputs.scan }}
+
     steps:
 
     - name: Checkout Repo
@@ -141,7 +140,7 @@ jobs:
       uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
       env:
-        RESULTS: "checkov\n${{ needs.terraform_deploy.outputs.checkov }}"
+        RESULTS: "checkov\n${{ steps.checkov.outputs.stderr }}"
       with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
