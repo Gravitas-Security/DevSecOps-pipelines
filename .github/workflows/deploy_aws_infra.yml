@@ -44,12 +44,17 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
     - name: Terraform init
+      id: init
       run: terraform init -input=false
       continue-on-error: false
 
     - name: Terraform validation
-      id: validate
+      id: fmt
       run: terraform validate
+
+    - name: Terraform format
+      id: validate
+      run: terraform fmt -recursive
 
     - name: Terraform plan
       id: plan
