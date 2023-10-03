@@ -39,7 +39,7 @@ jobs:
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: 1.5.7
-        terraform_wrapper: false
+        terraform_wrapper: true
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
     - name: Terraform init
@@ -61,7 +61,9 @@ jobs:
     - name: Terraform plan
       id: plan
       if: github.event_name == 'pull_request'
-      run: terraform plan -no-color -input=false
+      run: | 
+        terraform plan -no-color -input=false |
+        aws sts get-caller-identity
       continue-on-error: false
       
     - uses: actions/github-script@v6
