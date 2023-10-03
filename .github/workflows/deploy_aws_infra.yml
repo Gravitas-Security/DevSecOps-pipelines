@@ -139,7 +139,7 @@ jobs:
       uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
       env:
-        RESULTS: "checkov\n${{ steps.checkov.outputs.stdout }}"
+        RESULTS: "checkov\n${{ steps.checkov.outputs.stderr }}"
       with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
