@@ -53,7 +53,10 @@ jobs:
     - name: Debug AWS Identity
       run: |
         aws sts get-caller-identity
-        la -la
+
+    - name: troubleshooting
+      run: |
+        ls -la
 
     - name: Terraform plan
       id: plan
