@@ -139,7 +139,7 @@ jobs:
       uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
       env:
-        RESULTS: "checkov\n${{ steps.checkov.outputs.stderr }}"
+        RESULTS: "checkov\n${{ steps.checkov.outputs.stdout }}"
       with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -155,12 +155,11 @@ jobs:
 
             // 2. Prepare format of the comment
             const output = `#### Checkov Scan Results 🖌\`${{ steps.checkov.outcome }}\`
-            #### Checkov Scan Results 📖\`${{ steps.checkov.outcome }}\`
 
             <details><summary>Show Scan</summary>
 
             \`\`\`\n
-            ${process.env.results}
+            ${process.env.RESULTS}
             \`\`\`
 
             </details>
