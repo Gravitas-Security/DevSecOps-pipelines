@@ -24,8 +24,8 @@ jobs:
       run:
         shell: bash
         working-directory: ${{ inputs.working-directory }}
-    outputs:
-      checkov_results: ${{ steps.checkov.ouputs.checkov_results }}
+    # outputs:
+    #   checkov_results: ${{ steps.checkov.ouputs.checkov_results }}
     steps:
 
     - name: Checkout Repo
@@ -141,8 +141,6 @@ jobs:
     - name: Post Checkov Scan to PR
       uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
-      # env:
-      #   RESULTS: "checkov\n${{ steps.checkov.outputs.checkov_results }}"
       with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
