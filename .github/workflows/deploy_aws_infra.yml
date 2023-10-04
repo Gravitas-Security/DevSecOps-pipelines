@@ -143,6 +143,7 @@ jobs:
         RESULTS: "checkov\n${{ steps.checkov.outputs.stderr }}"
       with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          download-external-modules: true
           script: |
             // 1. Retrieve existing bot comments for the PR
             const { data: comments } = await github.rest.issues.listComments({
