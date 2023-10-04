@@ -162,7 +162,7 @@ jobs:
             <details><summary>Show Scan</summary>
 
             \`\`\`\n
-            ${process.env.RESULTS}
+            ${process.env.CHECKOV_RESULTS}
             \`\`\`
 
             </details>
