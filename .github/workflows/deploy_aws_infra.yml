@@ -94,7 +94,7 @@ jobs:
 
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
 
-            <details><summary>Show Plan</summary>
+            <details><summary>Show Plan Results</summary>
 
             \`\`\`\n
             ${process.env.PLAN}
@@ -155,7 +155,7 @@ jobs:
             // 2. Prepare format of the comment
             const output = `#### Checkov Scan Results 🖌\`${{ steps.checkov.outcome }}\`
 
-            <details><summary>Show Scan</summary>
+            <details><summary>Show Scan Results</summary>
 
             \`\`\`\n
             ${process.env.CHECKOV_RESULTS}
