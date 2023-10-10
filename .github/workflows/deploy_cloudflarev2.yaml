@@ -68,7 +68,7 @@ jobs:
           script: |
             // Filter the terraform plan to only show changes, excluding refreshes.
             const filteredPlan = process.env.PLAN.split('\n')
-            .filter(line => line.startsWith('Terraform used the selected providers to generate the following execution')
+            .filter(line => line.startsWith('Terraform used the selected providers to generate the following execution'))
             .join('\n');
             // 1. Retrieve existing bot comments for the PR
             const { data: comments } = await github.rest.issues.listComments({
