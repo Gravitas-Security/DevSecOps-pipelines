@@ -50,7 +50,7 @@ jobs:
       uses: actions/checkout@v4.1.0
       with:
         repository: cyberviking949/devsecops-pipelines
-        sparse_checkout: |
+        sparse-checkout: |
           .github
         path: steps
 
