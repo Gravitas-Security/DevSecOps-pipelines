@@ -1,0 +1,19 @@
+- name: Setup Terraform
+  uses: hashicorp/setup-terraform@v2
+  with:
+    terraform_version: 1.5.7
+    terraform_wrapper: true
+    cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+- name: Terraform init
+  id: init
+  run: terraform init -input=false
+  continue-on-error: false
+
+- name: Terraform validation
+  id: validate
+  run: terraform validate -no-color
+
+- name: Terraform format
+  id: fmt
+  run: terraform fmt -recursive
