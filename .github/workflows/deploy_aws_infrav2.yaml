@@ -22,7 +22,7 @@ jobs:
       directories: ${{ steps.directories.outputs.modules }}
     steps:
       - name: Checkout Code Repo
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4.1.0
         with:
           fetch-depth: 0
 
@@ -44,10 +44,10 @@ jobs:
     steps:
 
     - name: Checkout Code Repo
-      uses: actions/checkout@v3.3.0
+      uses: actions/checkout@v4.1.0
 
     - name: Checkout Pipeline Repo
-      uses: actions/checkout@v3.3.0
+      uses: actions/checkout@v4.1.0
       with:
         repository: cyberviking949/devsecops-pipelines
         sparse_checkout: |
