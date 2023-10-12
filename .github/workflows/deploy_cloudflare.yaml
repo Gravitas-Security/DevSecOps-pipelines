@@ -2,10 +2,6 @@ name: 'Deploy Cloudflare Infrastructure'
 
 on:
   workflow_call:
-    inputs:
-      working-directory:
-        required: true
-        type: string
     secrets:
       CLOUDFLARE_ACCOUNT_ID:
         required: true
@@ -15,19 +11,37 @@ on:
         required: true
 
 jobs:
-  terraform:
-    name: 'Terraform'
+  find_changes:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-    # Set the working directory to main for the config files
     defaults:
       run:
         shell: bash
-        working-directory: ${{ inputs.working-directory }}
+    outputs:
+      directories: ${{ steps.directories.outputs.modules }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3.3.0
+        with:
+          fetch-depth: 0
+
+      - name: Generate Matrix
+        uses: theappnest/terraform-monorepo-action@master
+        id: directories
+        
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        dir:  ${{ fromJson(needs.find_changes.outputs.directories) }}
+    defaults:
+      run:
+        shell: bash
+    needs: find_changes
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
         
     steps:
     # Checkout the repository to the GitHub Actions runner
@@ -88,11 +102,11 @@ jobs:
               issue_number: context.issue.number,
             })
             const botComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes('${{ github.workflow }}')
+              return comment.user.type === 'Bot' && comment.body.includes('${{ github.workflow }}-${{ matrix.dir }}')
             })
 
             // 2. Prepare format of the comment
-            const output = `#### ${{ github.workflow }} 
+            const output = `#### ${{ github.workflow }}-${{ matrix.dir }} 
             #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
