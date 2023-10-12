@@ -24,11 +24,13 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3.3.0
+        with:
+          fetch-depth: 0
 
       - name: Identify changed directories
         id: get-changed-dirs
         run: |
-          dirs=$(git diff --name-only origin/${{ github.base_ref }}..${{ github.head_ref }} | grep "^terraform/" | xargs -I {} dirname {} | sort -u | jq -R . | jq -s -c .)
+          dirs=$(git diff --name-only ${{ github.base_ref }}..${{ github.head_ref }} | grep "^terraform/" | xargs -I {} dirname {} | sort -u | jq -R . | jq -s -c .)
           echo "Changed directories: $dirs"
           echo "DEBUG: dirs=$dirs"
           echo "::set-output name=dirs::$dirs"
