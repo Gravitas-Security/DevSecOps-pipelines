@@ -17,12 +17,25 @@ permissions:
   pull-requests: write # This is required to Write the PR Comment
 
 jobs:
+  find-out-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      dirs: ${{ steps.changed-files.dirs }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3.3.0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          dir_names: true
+          
   terraform_deploy:
     name: Deploy AWS infrastructure
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        folder: ${{ matrix.dir }}
+      matrix: ${{fromJson(needs.find-out-changes.outputs.dirs)}}
     defaults:
       run:
         shell: bash
@@ -31,20 +44,6 @@ jobs:
 
     - name: Checkout Repo
       uses: actions/checkout@v3.3.0
-
-    - name: Get changed files
-      id: changed-files
-      uses: tj-actions/changed-files@v35
-      with:
-        dir_names: true
-        dir_names_max_depth: 2  # This is optional. If not provided, full subdirectories' paths will be provided. Use it if you need to trim the output. See docs for details: https://github.com/tj-actions/changed-files/tree/main#inputs.
-        json: true
-        quotepath: false
-
-    - name: 'Set output in the matrix format'
-      id: set-output
-      run: echo "changed_directories={\"dir\":${{ steps.changed-files.outputs.all_changed_files }}}" >> "$GITHUB_OUTPUT"
-
 
     - name: configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
