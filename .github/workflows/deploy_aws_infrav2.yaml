@@ -26,10 +26,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: theappnest/terraform-monorepo-action@master
+      - name: Generate Matrix
+        uses: theappnest/terraform-monorepo-action@master
         id: directories
-
-      - run: echo ${{ steps.directories.outputs.modules }}
           
   terraform_deploy:
     name: Deploy AWS infrastructure
