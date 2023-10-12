@@ -54,24 +54,8 @@ jobs:
         role-duration-seconds: 3600
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.7
-        terraform_wrapper: true
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-    - name: Terraform init
-      id: init
-      run: terraform init -input=false
-      continue-on-error: false
-
-    - name: Terraform validation
-      id: validate
-      run: terraform validate -no-color
-
-    - name: Terraform format
-      id: fmt
-      run: terraform fmt -recursive
+      uses: ./.github/terraform/setup_tf.yaml
+      id: tf_setup
 
     - name: Terraform plan
       id: plan
@@ -80,141 +64,17 @@ jobs:
       continue-on-error: false
       
     - name: Post Terraform Plan to PR
-      uses: actions/github-script@v6
+      uses: ./.github/pr-comms/tf.yaml
       if: github.event_name == 'pull_request'
-      env:
-        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-      with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            // Try to find the starting index of the desired sections.
-            const planOutput = process.env.PLAN.indexOf('Terraform used the selected providers to generate the following execution');
-            const noChanges = process.env.PLAN.indexOf('No changes. Your infrastructure matches the configuration.');
-
-            let filteredPlan = "";
-
-            // Check which section is present and capture the appropriate content.
-            if (planOutput !== -1) {
-              filteredPlan = process.env.PLAN.slice(planOutput);
-            } else if (noChanges !== -1) {
-              filteredPlan = 'No changes. Your infrastructure matches the configuration.';
-            } else {
-              filteredPlan = process.env.PLAN; // fallback to the original content if neither section is found.
-            }
-            
-            // 1. Retrieve existing bot comments for the PR
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            })
-            const botComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes('${{ github.workflow }}-${{ matrix.dir }}')
-            })
-
-            // 2. Prepare format of the comment
-            const output = `#### ${{ github.workflow }}-${{ matrix.dir }}
-            #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            <details><summary>Validation Output</summary>
-
-            \`\`\`\n
-            ${{ steps.validate.outputs.stdout }}
-            \`\`\`
-
-            </details>
-
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-
-            <details><summary>Show Plan Results</summary>
-
-            \`\`\`\n
-            ${filteredPlan}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-
-            // 3. If we have a comment, update it, otherwise create a new one
-            if (botComment) {
-              github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: output
-              })
-            } else {
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: output
-              })
-            }
-    
-    - name: Set up Python 3.8
-      if: github.event_name == 'pull_request'
-      uses: actions/setup-python@v4.5.0
-      with:
-        python-version: 3.8
         
     - name: Scan with Checkov
       id: checkov
-      uses: bridgecrewio/checkov-action@v12.1347.0
+      uses: ./.github/scans/checkov.yaml
       if: github.event_name == 'pull_request'
-      with:
-        directory: ${{ matrix.dir }}
-        framework: terraform 
-        output_format: cli
-        download_external_modules: true
 
     - name: Post Checkov Scan to PR
-      uses: actions/github-script@v6
+      uses: ./.github/pr-comms/checkov.yaml
       if: github.event_name == 'pull_request'
-      with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            // 1. Retrieve existing bot comments for the PR
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            })
-            const botComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes('Checkov Scan Results-${{ matrix.dir }}')
-            })
-
-            // 2. Prepare format of the comment
-            const output = `#### Checkov Scan Results-${{ matrix.dir }} 🖌\`${{ steps.checkov.outcome }}\`
-
-            <details><summary>Show Scan Results</summary>
-
-            \`\`\`\n
-            ${process.env.CHECKOV_RESULTS}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-
-            // 3. If we have a comment, update it, otherwise create a new one
-            if (botComment) {
-              github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: output
-              })
-            } else {
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: output
-              })
-            }
       
     - name: Terraform apply
       id : apply
