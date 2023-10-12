@@ -24,7 +24,7 @@ jobs:
         shell: bash
         working-directory: ${{ inputs.working-directory }}
     outputs:
-      directories: ${{ steps.directories.outputs.dirs }}
+      directories: ${{ steps.directories.outputs.modules }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3.3.0
@@ -34,18 +34,18 @@ jobs:
       - uses: theappnest/terraform-monorepo-action@master
         id: directories
 
-      - run: echo ${{ steps.directories.outputs.dirs }}
+      - run: echo ${{ steps.directories.outputs.directories }}
           
   terraform_deploy:
     name: Deploy AWS infrastructure
     runs-on: ubuntu-latest
     strategy:
       matrix: 
-        dir:  ${{ fromJson(needs.find-out-changes.outputs.directories) }}
+        dir:  ${{ fromJson(needs.directories.outputs.directories) }}
     defaults:
       run:
         shell: bash
-        working-directory: ${{ matrix.directories }}
+        working-directory: ${{ matrix.dir }}
     steps:
 
     - name: Checkout Repo
