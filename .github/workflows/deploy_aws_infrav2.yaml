@@ -35,7 +35,8 @@ jobs:
     name: Deploy AWS infrastructure
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{fromJson(needs.find-out-changes.outputs.dirs)}}
+      matrix: 
+        dir: ${{fromJson(needs.find-out-changes.outputs.dirs)}}
     defaults:
       run:
         shell: bash
