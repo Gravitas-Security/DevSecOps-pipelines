@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: 
-        dir:  ${{ fromJson(needs.directories.outputs.dirs) }
+        dir:  ${{ fromJson(needs.directories.outputs.dirs) }}
     defaults:
       run:
         shell: bash
