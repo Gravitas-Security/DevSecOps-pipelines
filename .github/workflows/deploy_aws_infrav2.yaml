@@ -2,10 +2,6 @@ name: Deploy AWS Infrastructure
 
 on:
   workflow_call:
-    inputs:
-      working-directory:
-        required: true
-        type: string
     secrets:
       aws_role:
         required: true
