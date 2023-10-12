@@ -56,7 +56,7 @@ jobs:
 
     - run: |
         ls -la
-        cd steps/
+        cd .github
         ls -la
 
     - name: configure AWS credentials
