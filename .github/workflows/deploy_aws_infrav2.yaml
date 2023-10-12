@@ -2,6 +2,10 @@ name: Deploy AWS Infrastructure
 
 on:
   workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
     secrets:
       aws_role:
         required: true
@@ -22,6 +26,7 @@ jobs:
     defaults:
       run:
         shell: bash
+        working-directory: ${{ inputs.working-directory }}
     steps:
 
     - name: Checkout Repo
