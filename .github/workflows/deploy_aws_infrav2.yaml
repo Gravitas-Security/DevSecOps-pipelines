@@ -46,6 +46,14 @@ jobs:
     - name: Checkout Repo
       uses: actions/checkout@v3.3.0
 
+    - name: Checkout Repo
+      uses: actions/checkout@v3.3.0
+      with:
+        repository: cyberviking949/devsecops-pipelines
+        sparse_checkout: |
+          .github
+        path: steps
+
     - name: configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -54,7 +62,7 @@ jobs:
         role-duration-seconds: 3600
 
     - name: Setup Terraform
-      uses: ./.github/terraform/setup_tf.yaml
+      uses: ./steps/.github/terraform/setup_tf.yaml
       id: tf_setup
 
     - name: Terraform plan
@@ -64,16 +72,16 @@ jobs:
       continue-on-error: false
       
     - name: Post Terraform Plan to PR
-      uses: ./.github/pr-comms/tf.yaml
+      uses: ./steps/.github/pr-comms/tf.yaml
       if: github.event_name == 'pull_request'
         
     - name: Scan with Checkov
       id: checkov
-      uses: ./.github/scans/checkov.yaml
+      uses: ./steps/.github/scans/checkov.yaml
       if: github.event_name == 'pull_request'
 
     - name: Post Checkov Scan to PR
-      uses: ./.github/pr-comms/checkov.yaml
+      uses: ./steps/.github/pr-comms/checkov.yaml
       if: github.event_name == 'pull_request'
       
     - name: Terraform apply
