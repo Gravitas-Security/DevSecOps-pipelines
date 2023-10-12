@@ -18,7 +18,6 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ${{ inputs.working-directory }}
     outputs:
       directories: ${{ steps.directories.outputs.modules }}
     steps:
