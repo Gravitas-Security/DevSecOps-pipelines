@@ -34,7 +34,7 @@ jobs:
       - uses: theappnest/terraform-monorepo-action@master
         id: directories
 
-      - run: echo ${{ steps.directories.outputs.directories }}
+      - run: echo ${{ steps.directories.outputs.modules }}
           
   terraform_deploy:
     name: Deploy AWS infrastructure
