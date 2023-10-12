@@ -55,7 +55,7 @@ jobs:
         path: steps
 
     - run: |
-        cd ../
+        cd ../../
         ls -la
         cd steps/
         ls -la
