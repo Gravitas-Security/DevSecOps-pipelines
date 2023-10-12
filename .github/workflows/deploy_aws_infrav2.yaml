@@ -19,6 +19,10 @@ permissions:
 jobs:
   find-out-changes:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working-directory }}
     outputs:
       dirs: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -32,7 +36,8 @@ jobs:
         uses: tj-actions/changed-files@v11.7
         with:
           dir_names: "true"
-          files_ignore: .github/**
+          json: true
+          escape_json: false
 
       - name: Identify changed directories
         id: get-changed-dirs
