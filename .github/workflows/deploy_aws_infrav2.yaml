@@ -42,7 +42,7 @@ jobs:
     needs: find_changes
     strategy:
       matrix: 
-        dir:  ${{ needs.find_changes.outputs.directories }}
+        dir:  ${{ fromJson(needs.find_changes.outputs.directories) }}
     defaults:
       run:
         shell: bash
