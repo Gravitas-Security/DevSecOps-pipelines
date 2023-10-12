@@ -27,19 +27,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@v11.7
+        with:
+          dir_names: "true"
+
       - name: Identify changed directories
         id: get-changed-dirs
         run: |
-          dirs=$(git diff --name-only origin/${{ github.base_ref }}..${{ github.head_ref }} | grep "^terraform/" | xargs -I {} dirname {} | sort -u | jq -R . | jq -s -c .)
-          echo "Changed directories: $dirs"
-          echo "DEBUG: dirs=$dirs"
-          echo "::set-output name=dirs::$dirs"
-
-      - name: Set matrix for next job
-        id: set-matrix
-        run: |
-          matrix_value=${{ steps.get-changed-dirs.outputs.dirs }}
-          echo "::set-output name=matrix::$matrix_value"
+          dirs=$(echo "${{ steps.changed-files.outputs.all_modified_files }}" | xargs -I {} dirname {} | sort -u | jq -R . | jq -s -c .)
+          echo "::set-output name=matrix::$dirs"
           
   terraform_deploy:
     name: Deploy AWS infrastructure
