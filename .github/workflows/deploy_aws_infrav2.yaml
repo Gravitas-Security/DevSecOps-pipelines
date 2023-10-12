@@ -43,12 +43,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: 
-        dir: ${{ fromJson(needs.find-out-changes.outputs.dirs) }}
+        dir: ${{ needs.find-out-changes.outputs.dirs == '' && '[]' || fromJson(needs.find-out-changes.outputs.dirs) }}
     defaults:
       run:
         shell: bash
         working-directory: ${{ inputs.working-directory }}
     steps:
+    - name: Debug print matrix
+      run: echo "${{ needs.find-out-changes.outputs.dirs }}"
 
     - name: Checkout Repo
       uses: actions/checkout@v3.3.0
