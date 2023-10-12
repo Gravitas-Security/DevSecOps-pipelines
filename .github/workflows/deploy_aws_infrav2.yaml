@@ -54,11 +54,6 @@ jobs:
           .github
         path: ${{ matrix.dir }}
 
-    - run: |
-        ls -la
-        cd .github
-        ls -la
-
     - name: configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -67,7 +62,7 @@ jobs:
         role-duration-seconds: 3600
 
     - name: Setup Terraform
-      uses: ./steps/.github/terraform/setup_tf.yaml
+      uses: ./.github/terraform/setup_tf.yaml
       id: tf_setup
 
     - name: Terraform plan
@@ -77,16 +72,16 @@ jobs:
       continue-on-error: false
       
     - name: Post Terraform Plan to PR
-      uses: ./steps/.github/pr-comms/tf.yaml
+      uses: ./.github/pr-comms/tf.yaml
       if: github.event_name == 'pull_request'
         
     - name: Scan with Checkov
       id: checkov
-      uses: ./steps/.github/scans/checkov.yaml
+      uses: ./.github/scans/checkov.yaml
       if: github.event_name == 'pull_request'
 
     - name: Post Checkov Scan to PR
-      uses: ./steps/.github/pr-comms/checkov.yaml
+      uses: ./.github/pr-comms/checkov.yaml
       if: github.event_name == 'pull_request'
       
     - name: Terraform apply
