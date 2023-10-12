@@ -44,7 +44,7 @@ jobs:
         id: get-changed-dirs
         shell: bash
         run: |
-          dirs=$(echo "${{ steps.changed-files.outputs.all_modified_files }}" | xargs -I {} dirname {} | sort -u | jq -R . | jq -s -c . | tr '\n' ',')
+          dirs=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | xargs -I {} dirname {} | sort -u | jq -R . | jq -s -c . | tr '\n' ',')
           echo "DEBUG: Directories: $dirs"
           echo "::set-output name=matrix::$dirs"
           
