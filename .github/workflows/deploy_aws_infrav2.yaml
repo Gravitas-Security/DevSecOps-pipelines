@@ -32,6 +32,7 @@ jobs:
         uses: tj-actions/changed-files@v11.7
         with:
           dir_names: "true"
+          files_ignore: .github/**
 
       - name: Identify changed directories
         id: get-changed-dirs
