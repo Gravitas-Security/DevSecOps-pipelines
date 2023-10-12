@@ -20,16 +20,23 @@ jobs:
   find-out-changes:
     runs-on: ubuntu-latest
     outputs:
-      dirs: ${{ steps.changed-files.dirs }}
+      dirs: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3.3.0
 
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v39.2.2
-        with:
-          dir_names: true
+      - name: Identify changed directories
+        id: get-changed-dirs
+        run: |
+          dirs=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "^terraform/" | xargs -I {} dirname {} | sort -u | jq -R . | jq -s -c .)
+          echo "Changed directories: $dirs"
+          echo "::set-output name=dirs::$dirs"
+
+      - name: Set matrix for next job
+        id: set-matrix
+        run: |
+          matrix_value=${{ steps.get-changed-dirs.outputs.dirs }}
+          echo "::set-output name=matrix::$matrix_value"
           
   terraform_deploy:
     name: Deploy AWS infrastructure
@@ -62,21 +69,21 @@ jobs:
 
     - name: Terraform init
       id: init
-      run: terraform -chdir=${{ matrix.folder }} init -input=false
+      run: terraform -chdir=${{ matrix.dir }} init -input=false
       continue-on-error: false
 
     - name: Terraform validation
       id: validate
-      run: terraform -chdir=${{ matrix.folder }} validate -no-color
+      run: terraform -chdir=${{ matrix.dir }} validate -no-color
 
     - name: Terraform format
       id: fmt
-      run: terraform -chdir=${{ matrix.folder }} fmt -recursive
+      run: terraform -chdir=${{ matrix.dir }} fmt -recursive
 
     - name: Terraform plan
       id: plan
       if: github.event_name == 'pull_request'
-      run: terraform -chdir=${{ matrix.folder }} plan -no-color -input=false 
+      run: terraform -chdir=${{ matrix.dir }} plan -no-color -input=false 
       continue-on-error: false
       
     - name: Post Terraform Plan to PR
@@ -165,7 +172,7 @@ jobs:
       uses: bridgecrewio/checkov-action@v12.1347.0
       if: github.event_name == 'pull_request'
       with:
-        directory: ${{ matrix.folder }}
+        directory: ${{ matrix.dir }}
         framework: terraform 
         output_format: cli
         download_external_modules: true
@@ -219,4 +226,4 @@ jobs:
     - name: Terraform apply
       id : apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform -chdir=${{ matrix.folder }} apply -auto-approve -input=false
+      run: terraform -chdir=${{ matrix.dir }} apply -auto-approve -input=false
