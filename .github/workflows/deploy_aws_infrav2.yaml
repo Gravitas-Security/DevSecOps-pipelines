@@ -45,7 +45,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ${{ matrix.module }}
+        working-directory: ${{ matrix.directories }}
     steps:
 
     - name: Checkout Repo
