@@ -2,6 +2,13 @@ name: Deploy AWS Infrastructure
 
 on:
   workflow_call:
+    inputs:
+      region:
+        type: string
+        required: true
+      tf_version:
+        type: string
+        required: true
     secrets:
       aws_role:
         required: true
@@ -50,14 +57,14 @@ jobs:
     - name: configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-region: us-west-2
+        aws-region: ${{ inputs.region }}
         role-to-assume: ${{ secrets.AWS_ROLE }}
         role-duration-seconds: 3600
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
-        terraform_version: 1.5.7
+        terraform_version: ${{ inputs.tf_version }}
         terraform_wrapper: true
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
