@@ -17,22 +17,9 @@ permissions:
       pull-requests: write
 
 jobs:
-  tf_cf_acct_deploy:     
-    uses: your_pipeline_repo/.github/workflows/deploy_cloudflare_account.yml@main
-    with:
-      working-directory: './your_TF_Dir'
+  tf_cf_deploy:     
+    uses: cyberviking949/devsecops-pipelines/.github/workflows/deploy_cloudflare.yml@main
     secrets:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-      ssh_key: ${{ secrets.SSH_KEY }}
-
-  tf_cf_zone_deploy:     
-    uses: your_pipeline_repo/.github/workflows/deploy_cloudflare_zone.yml@main
-    with:
-      working-directory: './your_TF_Dir'
-    secrets:
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-      ssh_key: ${{ secrets.SSH_KEY }}
