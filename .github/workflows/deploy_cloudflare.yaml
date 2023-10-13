@@ -32,6 +32,7 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix: 
         dir:  ${{ fromJson(needs.find_changes.outputs.directories) }}
     defaults:
