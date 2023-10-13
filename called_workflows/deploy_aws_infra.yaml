@@ -3,100 +3,222 @@ name: Deploy AWS Infrastructure
 on:
   workflow_call:
     inputs:
-      working-directory:
+      region:
         required: true
-        type: string
     secrets:
       aws_role:
         required: true
-      ssh_key:
+      tf_api_token:
         required: true
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+  pull-requests: write # This is required to Write the PR Comment
 
 jobs:
-  terraform_deploy:
-    name: Deploy AWS infrastructure
+  find_changes:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     defaults:
       run:
         shell: bash
-        working-directory: ${{ inputs.working-directory }}
+    outputs:
+      directories: ${{ steps.directories.outputs.modules }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3.3.0
+        with:
+          fetch-depth: 0
+
+      - name: Generate Matrix
+        uses: theappnest/terraform-monorepo-action@master
+        id: directories
+          
+  terraform_deploy:
+    name: Deploy AWS infrastructure
+    runs-on: ubuntu-latest
+    needs: find_changes
+    strategy:
+      fail-fast: false
+      matrix: 
+        dir:  ${{ fromJson(needs.find_changes.outputs.directories) }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.dir }}
     steps:
 
     - name: Checkout Repo
       uses: actions/checkout@v3.3.0
 
     - name: configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1-node16
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-region: us-west-2
-        role-to-assume: ${{ secrets.aws_role }}
+        aws-region: ${{ inputs.region }}
+        role-to-assume: ${{ secrets.AWS_ROLE }}
         role-duration-seconds: 3600
 
-    - name: Run Terraform
+    - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
-        terraform_version: 1.3.7
+        terraform_version: 1.5.7
         terraform_wrapper: true
-        
-    # - uses: webfactory/ssh-agent@v0.7.0
-    #   with:
-    #       ssh-private-key: ${{ secrets.SSH_KEY }}
-      
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
     - name: Terraform init
+      id: init
       run: terraform init -input=false
       continue-on-error: false
 
     - name: Terraform validation
       id: validate
-      run: terraform validate
+      run: terraform validate -no-color
+
+    - name: Terraform format
+      id: fmt
+      run: terraform fmt -recursive
 
     - name: Terraform plan
       id: plan
       if: github.event_name == 'pull_request'
-      run: terraform plan -no-color -input=false -out tfplan.plan
+      run: terraform plan -no-color -input=false 
       continue-on-error: false
       
-    - name: Update Pull Request
-      uses: actions/github-script@6.4.1
+    - name: Post Terraform Plan to PR
+      uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
       env:
-        PLAN: "${{ steps.plan.outputs.stdout }}"
+        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const output = `
-          Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`
-          #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-          <details><summary>Show Plan</summary>
-          \n
-          \`\`\`terraform
-          ${process.env.PLAN}
-          \`\`\`
-          \n
-          </details>
-          `;
-          github.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: output
-          })
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Try to find the starting index of the desired sections.
+            const planOutput = process.env.PLAN.indexOf('Terraform used the selected providers to generate the following execution');
+            const noChanges = process.env.PLAN.indexOf('No changes. Your infrastructure matches the configuration.');
+
+            let filteredPlan = "";
+
+            // Check which section is present and capture the appropriate content.
+            if (planOutput !== -1) {
+              filteredPlan = process.env.PLAN.slice(planOutput);
+            } else if (noChanges !== -1) {
+              filteredPlan = 'No changes. Your infrastructure matches the configuration.';
+            } else {
+              filteredPlan = process.env.PLAN; // fallback to the original content if neither section is found.
+            }
+            
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('${{ github.workflow }} ${{ matrix.dir }}')
+            })
+
+            // 2. Prepare format of the comment
+            const output = `#### ${{ github.workflow }} ${{ matrix.dir }}
+            #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            <details><summary>Validation Output</summary>
+
+            \`\`\`\n
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan Results</summary>
+
+            \`\`\`\n
+            ${filteredPlan}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            // 3. If we have a comment, update it, otherwise create a new one
+            if (botComment) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
     
     - name: Set up Python 3.8
+      if: github.event_name == 'pull_request'
       uses: actions/setup-python@v4.5.0
       with:
         python-version: 3.8
         
-    - name: Test with Checkov
+    - name: Scan with Checkov
       id: checkov
       uses: bridgecrewio/checkov-action@v12.1347.0
+      if: github.event_name == 'pull_request'
       with:
-        directory: ${{ inputs.working-directory }}
+        directory: ${{ matrix.dir }}
         framework: terraform 
+        output_format: cli
+        download_external_modules: true
+
+    - name: Post Checkov Scan to PR
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Checkov Scan Results ${{ matrix.dir }}')
+            })
+
+            // 2. Prepare format of the comment
+            const output = `#### Checkov Scan Results ${{ matrix.dir }} 🖌\`${{ steps.checkov.outcome }}\`
+
+            <details><summary>Show Scan Results</summary>
+
+            \`\`\`\n
+            ${process.env.CHECKOV_RESULTS}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            // 3. If we have a comment, update it, otherwise create a new one
+            if (botComment) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
       
     - name: Terraform apply
       id : apply
