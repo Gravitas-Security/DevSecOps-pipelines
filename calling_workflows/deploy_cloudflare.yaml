@@ -19,6 +19,8 @@ permissions:
 jobs:
   tf_cf_deploy:     
     uses: cyberviking949/devsecops-pipelines/.github/workflows/deploy_cloudflare.yml@main
+    with:
+      tf_version: 1.5.7
     secrets:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
