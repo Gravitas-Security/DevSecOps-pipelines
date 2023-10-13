@@ -20,7 +20,8 @@ jobs:
   tf_deploy:     
     uses: cyberviking949/devsecops-pipelines/.github/workflows/deploy_terraform.yml@main
     with:
-      region: <your region>
+      region: us-west-2
+      tf_version: 1.5.7
     secrets:
       aws_role: ${{ secrets.AWS_ROLE }}
       ssh_key: ${{ secrets.SSH_KEY }}
