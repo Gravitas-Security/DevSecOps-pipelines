@@ -103,11 +103,11 @@ jobs:
               issue_number: context.issue.number,
             })
             const botComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes('${{ github.workflow }}-${{ matrix.dir }}')
+              return comment.user.type === 'Bot' && comment.body.includes('${{ github.workflow }} ${{ matrix.dir }}')
             })
 
             // 2. Prepare format of the comment
-            const output = `#### ${{ github.workflow }}-${{ matrix.dir }} 
+            const output = `#### ${{ github.workflow }} ${{ matrix.dir }} 
             #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
