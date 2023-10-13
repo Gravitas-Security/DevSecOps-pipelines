@@ -15,7 +15,7 @@ on:
         required: true
 
 jobs:
-  find_changes:
+  gather_changes:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -38,11 +38,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix: 
-        dir:  ${{ fromJson(needs.find_changes.outputs.directories) }}
+        dir:  ${{ fromJson(needs.gather_changes.outputs.directories) }}
     defaults:
       run:
         shell: bash
-    needs: find_changes
+    needs: gather_changes
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
