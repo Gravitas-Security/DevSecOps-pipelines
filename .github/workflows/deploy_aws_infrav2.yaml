@@ -13,7 +13,7 @@ permissions:
   pull-requests: write # This is required to Write the PR Comment
 
 jobs:
-  find_changes:
+  gather_changes:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,10 +33,10 @@ jobs:
   terraform_deploy:
     name: Deploy AWS infrastructure
     runs-on: ubuntu-latest
-    needs: find_changes
+    needs: gather_changes
     strategy:
       matrix: 
-        dir:  ${{ fromJson(needs.find_changes.outputs.directories) }}
+        dir:  ${{ fromJson(needs.gather_changes.outputs.directories) }}
     defaults:
       run:
         shell: bash
