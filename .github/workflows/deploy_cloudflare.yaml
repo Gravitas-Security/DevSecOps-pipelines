@@ -42,6 +42,7 @@ jobs:
     defaults:
       run:
         shell: bash
+        working-directory: ${{ matrix.dir }}
     needs: gather_changes
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
