@@ -18,9 +18,10 @@ permissions:
 
 jobs:
   tf_deploy:     
-    uses: your_pipeline_repo/.github/workflows/deploy_terraform.yml@main
+    uses: cyberviking949/devsecops-pipelines/.github/workflows/deploy_terraform.yml@main
     with:
-      working-directory: './your_TF_Dir'
+      region: us-west-2
+      tf_version: 1.5.7
     secrets:
       aws_role: ${{ secrets.AWS_ROLE }}
       ssh_key: ${{ secrets.SSH_KEY }}

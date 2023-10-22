@@ -1,0 +1,90 @@
+name: Deploy AWS Infrastructure
+
+on:
+  workflow_call:
+    secrets:
+      aws_role:
+        required: true
+      tf_api_token:
+        required: true
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+  pull-requests: write # This is required to Write the PR Comment
+
+jobs:
+  gather_changes:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      directories: ${{ steps.directories.outputs.modules }}
+    steps:
+      - name: Checkout Code Repo
+        uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 0
+
+      - name: Generate Matrix
+        uses: theappnest/terraform-monorepo-action@master
+        id: directories
+          
+  terraform_deploy:
+    name: Deploy AWS infrastructure
+    runs-on: ubuntu-latest
+    needs: gather_changes
+    strategy:
+      matrix: 
+        dir:  ${{ fromJson(needs.gather_changes.outputs.directories) }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+    steps:
+
+    - name: Checkout Code Repo
+      uses: actions/checkout@v4.1.0
+
+    - name: Checkout Pipeline Repo
+      uses: actions/checkout@v4.1.0
+      with:
+        repository: cyberviking949/devsecops-pipelines
+        sparse-checkout: |
+          .github
+        path: ${{ matrix.dir }}
+
+    - name: configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: us-west-2
+        role-to-assume: ${{ secrets.AWS_ROLE }}
+        role-duration-seconds: 3600
+
+    - name: Setup Terraform
+      uses: ./.github/terraform/setup_tf.yaml
+      id: tf_setup
+
+    - name: Terraform plan
+      id: plan
+      if: github.event_name == 'pull_request'
+      run: terraform plan -no-color -input=false 
+      continue-on-error: false
+      
+    - name: Post Terraform Plan to PR
+      uses: ./.github/pr-comms/tf.yaml
+      if: github.event_name == 'pull_request'
+        
+    - name: Scan with Checkov
+      id: checkov
+      uses: ./.github/scans/checkov.yaml
+      if: github.event_name == 'pull_request'
+
+    - name: Post Checkov Scan to PR
+      uses: ./.github/pr-comms/checkov.yaml
+      if: github.event_name == 'pull_request'
+      
+    - name: Terraform apply
+      id : apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve -input=false
