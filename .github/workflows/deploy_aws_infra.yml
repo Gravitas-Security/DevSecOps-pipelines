@@ -1,4 +1,6 @@
 name: Deploy AWS Infrastructure
+env:
+  API_KEY: ${{ secrets.JUMPCLOUD_API_KEY }}
 
 on:
   workflow_call:
