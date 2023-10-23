@@ -70,7 +70,7 @@ jobs:
         terraform_wrapper: true
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       env:
-        JUMPCLOUD_API_KEY: ${{ secrets.jumpcloud_api_key }}
+        JUMPCLOUD_API_KEY: ${{ secrets.JUMPCLOUD_API_KEY }}
 
     - name: Terraform init
       id: init
