@@ -3,10 +3,15 @@ name: 'Deploy Cloudflare Infrastructure'
 on:
   workflow_call:
     inputs:
+      region:
+        type: string
+        required: true
       tf_version:
         type: string
         required: true
     secrets:
+      aws_role:
+        required: true
       CLOUDFLARE_ACCOUNT_ID:
         required: true
       CLOUDFLARE_API_TOKEN:
@@ -54,6 +59,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3.3.0
 
+    - name: configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ inputs.region }}
+        role-to-assume: ${{ secrets.AWS_ROLE }}
+        role-duration-seconds: 3600
+    
     # Install the preferred version of Terraform CLI 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
