@@ -184,46 +184,57 @@ jobs:
       with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            // Helper function to extract the summary and failed checks
+            function extractFailedResults(checkovResults) {
+              const lines = checkovResults.split('\n');
+              const summaryLine = lines.find(line => line.startsWith("terraform scan results:"));
+              const failedChecks = lines.filter(line => line.includes('FAILED for resource:'));
+          
+              // Construct the output
+              let output = `#### Checkov Scan Results Summary\n\n`;
+              output += summaryLine ? `${summaryLine}\n\n` : "No summary available.\n\n";
+              if (failedChecks.length > 0) {
+                output += `### Failed Checks:\n\n`;
+                failedChecks.forEach((line, index) => {
+                  output += `${index + 1}. ${line}\n`;
+                });
+              } else {
+                output += `No failed checks. Great job! 🎉\n`;
+              }
+              return output;
+           }
+
             // 1. Retrieve existing bot comments for the PR
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-            })
+            });
             const botComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes('Checkov Scan Results ${{ matrix.dir }}')
-            })
+              return comment.user.type === 'Bot' && comment.body.includes('Checkov Scan Results');
+            });
 
-            // 2. Prepare format of the comment
-            const output = `#### Checkov Scan Results ${{ matrix.dir }} 🖌\`${{ steps.checkov.outcome }}\`
+                // 2. Extract the required results from CHECKOV_RESULTS
+            const checkovResults = process.env.CHECKOV_RESULTS || '';
+            const output = extractFailedResults(checkovResults);
 
-            <details><summary>Show Scan Results</summary>
-
-            \`\`\`\n
-            ${process.env.CHECKOV_RESULTS}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-
-            // 3. If we have a comment, update it, otherwise create a new one
+            // 3. Update or create the comment
             if (botComment) {
-              github.rest.issues.updateComment({
+              await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: botComment.id,
                 body: output
-              })
+              });
             } else {
-              github.rest.issues.createComment({
+              await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 body: output
-              })
+              });
             }
-      
+
     - name: Terraform apply
       id : apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
