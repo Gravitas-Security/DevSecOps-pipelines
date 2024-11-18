@@ -184,46 +184,75 @@ jobs:
       with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            // Helper function to extract summary and failed checks
+            function extractSummaryAndFailures(results) {
+              const lines = results.split('\n');
+              const summaryLine = lines.find(line => line.startsWith("terraform scan results:"));
+              const failedChecks = [];
+              const regexFailed = /FAILED for resource:/;
+
+              // Extract failed checks
+              for (let i = 0; i < lines.length; i++) {
+                if (regexFailed.test(lines[i])) {
+                  let failedBlock = lines[i];
+                  let j = i + 1;
+
+                  // Add subsequent lines relevant to the failed block
+                  while (j < lines.length && lines[j].startsWith("\t")) {
+                    failedBlock += `\n${lines[j]}`;
+                    j++;
+                  }
+                  failedChecks.push(failedBlock);
+                }
+              }
+
+              // Build the output
+              let output = `#### Checkov Scan Results Summary\n\n`;
+              output += summaryLine ? `${summaryLine}\n\n` : "No summary available.\n\n";
+
+              if (failedChecks.length > 0) {
+                output += `### Failed Checks:\n\n`;
+                failedChecks.forEach((block, index) => {
+                  output += `${index + 1}. ${block}\n\n`;
+                });
+              } else {
+                output += `No failed checks. Great job! 🎉\n`;
+              }
+
+              return output;
+            }
+
             // 1. Retrieve existing bot comments for the PR
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-            })
+            });
             const botComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes('Checkov Scan Results ${{ matrix.dir }}')
-            })
+              return comment.user.type === 'Bot' && comment.body.includes('Checkov Scan Results');
+            });
 
-            // 2. Prepare format of the comment
-            const output = `#### Checkov Scan Results ${{ matrix.dir }} 🖌\`${{ steps.checkov.outcome }}\`
+            // 2. Process the CHECKOV_RESULTS environment variable
+            const checkovResults = process.env.CHECKOV_RESULTS || '';
+            const output = extractSummaryAndFailures(checkovResults);
 
-            <details><summary>Show Scan Results</summary>
-
-            \`\`\`\n
-            ${process.env.CHECKOV_RESULTS}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-
-            // 3. If we have a comment, update it, otherwise create a new one
+            // 3. Update or create the comment
             if (botComment) {
-              github.rest.issues.updateComment({
+              await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: botComment.id,
                 body: output
-              })
+              });
             } else {
-              github.rest.issues.createComment({
+              await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 body: output
-              })
+              });
             }
-      
+
     - name: Terraform apply
       id : apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
