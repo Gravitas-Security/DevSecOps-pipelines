@@ -343,3 +343,22 @@ jobs:
                   echo -e "$region        \t $output"
               );
           done
+
+      - name: Block Public Sharing of Snapshots
+        run: |
+          echo -e "Region   \t Public Access State" ; \
+          echo -e "-------------- \t ----------------------" ; \
+          for region in $(
+              aws ec2 describe-regions \
+                  --region us-east-1 \
+                  --query "Regions[*].[RegionName]" \
+                  --output text
+              ); 
+              do (output=$(
+                  aws ec2 enable-snapshot-block-public-access \
+                      --region $region \
+                      --state block-all-sharing|block-new-sharing \
+                      --output text)
+                  echo -e "$region \t $output" 
+              );
+          done
