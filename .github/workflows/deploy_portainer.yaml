@@ -2,6 +2,10 @@ name: 'Deploy Cloudflare Infrastructure'
 
 on:
   workflow_call:
+    inputs:
+      tf_version:
+        type: string
+        required: true
     secrets:
       PORTAINER_UNAME:
         required: true
