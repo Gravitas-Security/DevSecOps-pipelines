@@ -1,0 +1,30 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - stack_files/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - stack_files/**
+permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+jobs:
+  tf_cf_deploy:     
+    uses: cyberviking949/devsecops-pipelines/.github/workflows/deploy_portainer.yml@main
+    with:
+      tf_version: 1.5.7
+    secrets:
+      GH_UNAME: ${{ secrets.GH_UNAME }}
+      GH_PWORD: ${{ secrets.GH)PWORD }}
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      PORTAINER_ENDPOINT: ${{ secrets.PORTAINER_ENDPOINT }}
+      PORTAINER_UNAME: ${{ secrets.PORTAINER_UNAME }}
+      PORTAINER_PWORD: ${{ secrets.PORTAINER_PWORD }}
