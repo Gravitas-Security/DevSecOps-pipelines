@@ -33,7 +33,7 @@ jobs:
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
       TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
       TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}    
-      TF_VAR_PORTAINER_ENDPOINT: ${{ secrets.PORTAINER_ENDPOINT }}
+      TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
