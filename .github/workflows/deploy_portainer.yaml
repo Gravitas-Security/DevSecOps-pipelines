@@ -30,6 +30,7 @@ jobs:
     defaults:
       run:
         shell: bash
+        working-directory: ./infra
     env:
       TF_VAR_gh_uname: ${{ secrets.GH_UNAME }}
       TF_VAR_gh_pword: ${{ secrets.GH_PWORD }}
