@@ -43,6 +43,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3.3.0
 
+    - name: Debug Directory Contents
+      run: |
+        echo "PWD: $(pwd)"
+        ls -al
+        ls -al ./infra
     # Install the preferred version of Terraform CLI 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
