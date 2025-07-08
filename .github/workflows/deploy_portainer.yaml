@@ -43,6 +43,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3.3.0
 
+    - name: Check for Terraform files
+      run: ls -al *.tf || echo "No Terraform files found in working directory."
+
     # Install the preferred version of Terraform CLI 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
