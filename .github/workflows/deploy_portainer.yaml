@@ -42,7 +42,7 @@ jobs:
     - name: Print Endpoint (sanitized)
       shell: bash
       run: |
-        echo "Endpoint starts with: ${TF_VAR_portainer_endpoint:0:8}"
+        echo "Endpoint starts with: ${TF_VAR_portainer_endpoint}"
       env:
         TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
 
