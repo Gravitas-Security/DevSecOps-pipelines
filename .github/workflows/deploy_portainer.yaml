@@ -52,19 +52,47 @@ jobs:
     - name: Terraform Init
       id: init
       run: terraform init -input=false
+      env:
+        TF_VAR_gh_uname: ${{ secrets.GH_UNAME }}
+        TF_VAR_gh_pword: ${{ secrets.GH_PWORD }}
+        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
+        TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
+        TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
 
     - name: Terraform validation
       id: validate
       run: terraform validate
+      env:
+        TF_VAR_gh_uname: ${{ secrets.GH_UNAME }}
+        TF_VAR_gh_pword: ${{ secrets.GH_PWORD }}
+        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
+        TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
+        TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
 
     - name: Terraform fmt
       id: fmt
       run: terraform fmt -recursive
+      env:
+        TF_VAR_gh_uname: ${{ secrets.GH_UNAME }}
+        TF_VAR_gh_pword: ${{ secrets.GH_PWORD }}
+        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
+        TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
+        TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
       
     - name: Terraform Plan
       id: plan
       if: github.event_name == 'pull_request'
       run: terraform plan -input=false -no-color
+      env:
+        TF_VAR_gh_uname: ${{ secrets.GH_UNAME }}
+        TF_VAR_gh_pword: ${{ secrets.GH_PWORD }}
+        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
+        TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
+        TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
       
     - name: Post Terraform Plan to PR
       uses: actions/github-script@v6
@@ -144,3 +172,10 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve
+      env:
+        TF_VAR_gh_uname: ${{ secrets.GH_UNAME }}
+        TF_VAR_gh_pword: ${{ secrets.GH_PWORD }}
+        TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
+        TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
+        TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
