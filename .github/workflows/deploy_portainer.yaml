@@ -39,8 +39,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3.3.0
 
-    - name: Check for Terraform files
-      run: ls -al *.tf || echo "No Terraform files found in working directory."
+    - name: Print Endpoint (sanitized)
+      run: echo "Endpoint starts with: ${TF_VAR_portainer_endpoint:0:8}"
+      env:
+        TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
 
     # Install the preferred version of Terraform CLI 
     - name: Setup Terraform
