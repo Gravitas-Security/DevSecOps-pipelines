@@ -15,6 +15,10 @@ on:
         required: true
       PORTAINER_ENDPOINT:
         required: true
+      CLOUDFLARE_ACCOUNT_ID:
+        required: true
+      CLOUDFLARE_API_TOKEN:
+        required: true
 
 jobs:
         
@@ -32,7 +36,9 @@ jobs:
       TF_VAR_gh_pword: ${{ secrets.GH_PWORD }}
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
       TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
-      TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}    
+      TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }} 
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
@@ -63,6 +69,8 @@ jobs:
         TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
         TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
         TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
     - name: Terraform validation
       id: validate
@@ -74,6 +82,8 @@ jobs:
         TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
         TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
         TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
     - name: Terraform fmt
       id: fmt
@@ -85,6 +95,8 @@ jobs:
         TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
         TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
         TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       
     - name: Terraform Plan
       id: plan
@@ -97,6 +109,8 @@ jobs:
         TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
         TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
         TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       
     - name: Post Terraform Plan to PR
       uses: actions/github-script@v6
@@ -183,3 +197,5 @@ jobs:
         TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
         TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}
         TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
