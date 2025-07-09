@@ -29,7 +29,7 @@ jobs:
         working-directory: infra
     env:
       TF_VAR_gh_uname: ${{ secrets.GH_UNAME }}
-      TF_VAR_gh_pword: ${{ secrets.GH_PAT }}
+      TF_VAR_gh_pword: ${{ secrets.GH_PWORD }}
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
       TF_VAR_portainer_uname: ${{ secrets.PORTAINER_UNAME }}
       TF_VAR_portainer_pword: ${{ secrets.PORTAINER_PWORD }}    
