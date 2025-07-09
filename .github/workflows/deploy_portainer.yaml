@@ -3,17 +3,17 @@ name: 'Deploy Cloudflare Infrastructure'
 on:
   workflow_call:
     secrets:
-      PORTAINER_UNAME:
+      TF_VAR_PORTAINER_UNAME:
         required: true
-      PORTAINER_PWORD:
+      TF_VAR_PORTAINER_PWORD:
         required: true
       TF_API_TOKEN:
         required: true
-      GH_UNAME:
+      TF_VAR_GH_UNAME:
         required: true
-      GH_PWORD:
+      TF_VAR_GH_PWORD:
         required: true
-      PORTAINER_ENDPOINT:
+      TF_VAR_PORTAINER_ENDPOINT:
         required: true
 
 jobs:
