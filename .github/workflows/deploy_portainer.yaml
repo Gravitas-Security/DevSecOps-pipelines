@@ -11,7 +11,7 @@ on:
         required: true
       GH_UNAME:
         required: true
-      GH_PAT:
+      GH_PWORD:
         required: true
       PORTAINER_ENDPOINT:
         required: true
