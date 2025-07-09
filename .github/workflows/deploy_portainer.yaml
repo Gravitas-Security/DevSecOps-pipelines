@@ -38,12 +38,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3.3.0
 
-    - name: Print Endpoint (sanitized)
-      shell: bash
-      run: |
-        echo "Endpoint starts with: ${TF_VAR_portainer_endpoint}"
-      env:
-        TF_VAR_portainer_endpoint: ${{ secrets.PORTAINER_ENDPOINT }}
+    - name: Debug TF Vars
+      run: env | grep TF_VAR_
 
     # Install the preferred version of Terraform CLI 
     - name: Setup Terraform
