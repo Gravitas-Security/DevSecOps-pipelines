@@ -22,7 +22,7 @@ jobs:
       directories: ${{ steps.directories.outputs.modules }}
     steps:
       - name: Checkout Code Repo
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
