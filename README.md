@@ -16,3 +16,9 @@ A repository consisting of various pipeline templates. This supports the Paved R
 * Stored in the `.github/workflows` folder of your code repo
 * Store `SSH_KEY` as a secret on the repo
 * Store platform relevant secrets (Cloudflare tokens, or AWS roles)
+
+### Release Please
+* `release_please.yaml` opens the release PR from conventional commits, merges it and tags the release
+* Call it with `secrets: inherit` (see `calling_workflows/release_please.yaml`); the caller sets `contents`, `pull-requests` and `issues: write`
+* Org secret `RELEASE_MERGE_TOKEN` (fine-grained, contents + pull requests write) merges past rulesets that require reviews; without it `GITHUB_TOKEN` is used
+* Inputs: `release-type` (default `terraform-module`), `auto-merge` (default `true`)

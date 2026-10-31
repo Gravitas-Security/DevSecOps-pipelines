@@ -1,0 +1,20 @@
+name: release-please
+
+on:
+  push:
+    branches:
+      - main
+
+# A called workflow can't have more permissions than its caller.
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release-please:
+    uses: Gravitas-Security/DevSecOps-pipelines/.github/workflows/release_please.yaml@main
+    secrets: inherit  # RELEASE_MERGE_TOKEN (org secret)
+    # with:
+    #   release-type: terraform-module   # default
+    #   auto-merge: true                 # default
