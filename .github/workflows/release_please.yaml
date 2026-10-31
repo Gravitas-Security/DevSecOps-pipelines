@@ -1,0 +1,56 @@
+name: 'Release Please'
+
+# Opens or updates the release PR from conventional commits on the default branch,
+# merges it straight away, and tags and publishes the release in the same run.
+#
+# Secrets (pass with `secrets: inherit`):
+#   RELEASE_MERGE_TOKEN  Fine-grained token from a repo admin (contents + pull requests
+#                        write). Needed where a ruleset requires reviews: GITHUB_TOKEN
+#                        can't bypass it, and GitHub doesn't allow the GitHub Actions app
+#                        on an org repo's bypass list. Without it, GITHUB_TOKEN is used.
+
+on:
+  workflow_call:
+    inputs:
+      release-type:
+        description: release-please release type
+        type: string
+        default: terraform-module
+      auto-merge:
+        description: merge the release PR as soon as it is opened or updated
+        type: boolean
+        default: true
+    secrets:
+      RELEASE_MERGE_TOKEN:
+        required: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - id: release
+        uses: google-github-actions/release-please-action@v3.7.12
+        with:
+          release-type: ${{ inputs.release-type }}
+          default-branch: ${{ github.event.repository.default_branch }}
+
+      - name: Merge release PR
+        id: merge
+        if: inputs.auto-merge && steps.release.outputs.pr
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_MERGE_TOKEN || github.token }}
+          PR_NUMBER: ${{ fromJSON(steps.release.outputs.pr).number }}
+        run: gh pr merge "$PR_NUMBER" --squash --admin --repo "$GITHUB_REPOSITORY"
+
+      # Tag and publish from this run: a merge made with GITHUB_TOKEN doesn't trigger
+      # another run. (A RELEASE_MERGE_TOKEN merge does; that run finds nothing to do.)
+      - name: Tag and publish release
+        if: steps.merge.outcome == 'success'
+        uses: google-github-actions/release-please-action@v3.7.12
+        with:
+          release-type: ${{ inputs.release-type }}
+          default-branch: ${{ github.event.repository.default_branch }}
