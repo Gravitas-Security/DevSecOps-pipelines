@@ -38,13 +38,15 @@ jobs:
           release-type: ${{ inputs.release-type }}
           default-branch: ${{ github.event.repository.default_branch }}
 
+      # The PR number is read in the shell: an expression like fromJSON(outputs.pr) is
+      # evaluated even when there's no release PR, and fails on the empty string.
       - name: Merge release PR
         id: merge
-        if: inputs.auto-merge && steps.release.outputs.pr
+        if: inputs.auto-merge && steps.release.outputs.pr != ''
         env:
           GH_TOKEN: ${{ secrets.RELEASE_MERGE_TOKEN || github.token }}
-          PR_NUMBER: ${{ fromJSON(steps.release.outputs.pr).number }}
-        run: gh pr merge "$PR_NUMBER" --squash --admin --repo "$GITHUB_REPOSITORY"
+          PR: ${{ steps.release.outputs.pr }}
+        run: gh pr merge "$(jq -r .number <<< "$PR")" --squash --admin --repo "$GITHUB_REPOSITORY"
 
       # Tag and publish from this run: a merge made with GITHUB_TOKEN doesn't trigger
       # another run. (A RELEASE_MERGE_TOKEN merge does; that run finds nothing to do.)
